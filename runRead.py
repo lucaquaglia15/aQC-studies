@@ -2,7 +2,7 @@ import os
 
 #read the path of the QC objects in the grid
 #put in the file only the string that apper in the [QA] Daily report from MonAlisa
-inputFile = open('../runList.txt', 'r')
+inputFile = open('runList.txt', 'r')
 path = inputFile.readlines()
 
 spl_word = '/'
