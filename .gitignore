@@ -13,8 +13,6 @@
 # ignore pdf files
 *.pdf
 
-# ignore txt files
-*.txt
 
 #ignore images
 *.png
