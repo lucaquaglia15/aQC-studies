@@ -63,10 +63,14 @@ void QC_comparison(string period, string run){
   
   for(int lmap=0;lmap<4;lmap++){
    hhLocalBoard_ratio[lmap] = (TH2F *) hhLocalBoard[0][lmap]->Clone(Form("%s_ratio_apass1_apass4",LocalBoard_name[lmap]));
+   //set title
+   hhLocalBoard_ratio[lmap]->SetTitle(Form("%s apass4/apass1",hhLocalBoard_ratio[lmap]->GetTitle()));
    //hhLocalBoard_ratio[lmap]->SetName(Form("%s",LocalBoardOccupancy_title_ratio[lmap]));
    hhLocalBoard_ratio[lmap]->Divide(hhLocalBoard[1][lmap]); 
    
    hhEffRatio_ratio[lmap] = (TH2F *) hhEffRatio[0][lmap]->Clone(Form("%s_ratio_apass1_apass4",EffRatio_name[lmap]));
+   //set title
+   hhEffRatio_ratio[lmap]->SetTitle(Form("%s apass4/apass1",hhEffRatio_ratio[lmap]->GetTitle()));
    hhEffRatio_ratio[lmap]->Divide(hhEffRatio[1][lmap]); 
   }
   
