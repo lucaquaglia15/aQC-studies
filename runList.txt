@@ -1,0 +1,2 @@
+/alice/data/2023/LHC23zd/538932/apass1/1810/QC/001
+/alice/data/2023/LHC23zd/538932/apass4/1810/QC
