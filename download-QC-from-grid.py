@@ -10,7 +10,7 @@ for line in path:
     line = line.rstrip('\n')
     #form the command to download the file 
     #files downloaded in ~/Desktop/testGridDownload/ folder
-    comm = 'alien_cp alien://' + line + '/QC_fullrun.root file://~/Desktop/testGridDownload/'
+    comm = 'alien_cp alien://' + line + '/QC_fullrun.root file://~/Desktop/aQC-studies/'
     print(comm)
     #start download
     os.system(comm)
