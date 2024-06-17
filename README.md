@@ -14,6 +14,7 @@
 1. **download-QC-from-grid.py** downloads the QC_fullrun.root files from the grid whose path is listed in *runList.txt* file. Run it using *python3 download-QC-from-grid.py*
 2. **runRead.py** is a script that runs *QC_readFiles.C* macro for all the runs listed in *runList.txt* file. Run it using *python3 runRead.py*
 3. **runComparison.py** is a script that runs *QC_comparions.C* for all the runs listed in *runList.txt* file. Run it using *python3 runComparison.py*.
+4. **writeAnalyzedRuns.py** read a txt file with the runs that have been analyzed: to create this file copy the runs fro the *QA - Daily report mail*. Periods need to be separated by a blank line. The file needs to start with a black line. The output file *out.txt* contains the list of analyzed runs in each period.
 
 ### Workflow
 The scripts **need** to be run in the following order because each of them takes as input the output of the previos:
