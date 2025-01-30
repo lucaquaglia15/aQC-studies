@@ -1,0 +1,30 @@
+
+input:
+    output_dir_name: "/home/luca/cernbox/assegnoTorino/MIDQC/aQC-studies/test" 
+
+    #List of runs
+    run_list: [
+        544122,
+        544116
+    ]
+
+    #Path from Hyperoop
+    alien_input_path: [
+        "/alice/cern.ch/user/a/alihyperloop/jobs/0128/hy_1288620",
+        "/alice/cern.ch/user/a/alihyperloop/jobs/0128/hy_1288619"
+    ]
+
+    file_type: "AnalysisResults.root"
+
+    #Needed for the merge part of the script
+    file_path: "/media/luca/Extreme SSD/MIDefficieincy/LHC22o_pass7_minBias/runs"
+    table_maker_stat: table-maker/Statistics
+    table_maker: table-maker/output
+    table_maker_dir: ["Muons_muonQualityCuts"]
+    table_maker_obj: ["Pt"]
+
+#Needed for the merge part of the script
+output:
+    output_fig_name: figures_1/LHC22o_full_stat
+    output_dir_name: output_1/Data
+    output_file_name: LHC22q_apass3_muons.root
