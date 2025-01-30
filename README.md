@@ -16,6 +16,7 @@
 3. **runComparison.py** is a script that runs `QC_comparions.C` for all the runs listed in `runList.txt` file. Run it using `python3 runComparison.py`.
 4. **writeAnalyzedRuns.py** read a txt file with the runs that have been analyzed: to create this file copy the runs fro the *QA - Daily report mail*. Periods need to be separated by a blank line. The file needs to start with a black line. The output file `out.txt` contains the list of analyzed runs in each period.
 5. **download-data-mc.py** is a script that reads a txt file containing a list of runs (eg `runs.txt`). All the runs needs to be processed by the same pass for data, and to belong to the same production for MC. The name of the file, the pass and the MC production needs to be passed as input, as explained by running `python3 download-data-mc.py --help`.
+5. **download-from-hyperloop.py** is a script provided by Lush Miscelletti to download the data run-by-run after a hyperloop hyperTrain has run over the data. The file also need to have the `config.yml` file where you insert the list of runs that you want to download, together with the path you fetch from hyperloop. Moreover, you need to modify the `output_dir_name` to the path where you want to save the data and that's it. To launch the script (inside ALICE-O2 environment) execute: `python download-from-hyperloop.py config.yml --download`
 
 ### Workflow
 The scripts to make the comparison between passes **need** to be run in the following order because each of them takes as input the output of the previos:
