@@ -24,3 +24,6 @@
 
 #ignore text file
 *.txt
+
+#ignore powerpoint files
+*.odp
