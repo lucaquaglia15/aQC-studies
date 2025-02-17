@@ -24,6 +24,7 @@
 #include <TTree.h>
 #include <string>
 #include <TROOT.h>
+#include <fstream>
 
 using namespace std;
 
@@ -38,7 +39,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   gStyle->SetOptStat(0);
   
   //----------Input and Output directory - same directory of the config file
-  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/PbPb2023_apass4"}; //same directory of the config file
+  char output_dir_name[1][200] = {"/home/luca/cernbox/assegnoTorino/MIDQC/aQC-studies/pp13TeV2023_apass4"}; //same directory of the config file
   
   Long_t *dummy1 = 0, *dummy2 = 0, *dummy3 = 0, *dummy4 = 0;
     
@@ -60,7 +61,13 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   }
   file_in_MC = new TFile(Form("%s/%i/AnalysisResultsMC_run_%i.root",output_dir_name[0],run,run),"read");
   printf("Open File data: %s\n",file_in_MC->GetName());
-  
+
+  //---------- Create .txt file for good/bad/la runs
+  ofstream hOutGood;
+  hOutGood.open(Form("%s/goodRuns.txt",output_dir_name[0]), std::ios_base::app);
+
+  ofstream hOutBad;
+  hOutBad.open(Form("%s/badRuns.txt",output_dir_name[0]), std::ios_base::app);
   
   //---------- Interesting objects: pT, eta, phi distributions
   string objPath = "analysis-muon-selection/output";
@@ -161,7 +168,136 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   TH1F *hRatio_Phi_matchedMchMid_ptsel_MC_data = (TH1F*) hPhi_matchedMchMid_ptsel_MC->Clone("hRatio_Phi_matchedMchMid_ptsel_MC_data");
   hRatio_Phi_matchedMchMid_ptsel_MC_data->Divide(hPhi_matchedMchMid_ptsel_data);
 
+  double lowLimitEtaPhi = 0.9, highLimitEtaPhi = 1.1; //+- 10% from unity in the ratio of eta and phi
+  double lowLimitPt = 0.8, highLimitPt = 1.2; //+- 20% from unity in the ratio of p_{T} in the range 0-2 GeV/c as suggested by il Nutellaro
+  int nBinsEta = 0, nBinsPhi = 0, nBinsPt = 0;
+  nBinsEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetNbinsX();
+  nBinsPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetNbinsX();
+  nBinsPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetNbinsX();
   
+  int nBinsBadEta = 0, nBinsBadPhi = 0, nBinsBadPt = 0;
+  int nBinsGoodEta = 0, nBinsGoodPhi = 0, nBinsGoodPt = 0;
+
+  bool isGoodEta = 0, isGoodPhi = 0, isGoodPt = 0;
+
+  //-- loop through the bins of the eta histo MC/data ratio and check quality of comparison (ratio within limits)
+  for (int iEta = 0; iEta < nBinsEta; iEta++) {
+    double getBinContentEta = 0.;
+    
+    getBinContentEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetBinContent(iEta+1);
+    //Add condition to skip the bump at eta -3.7
+    if (getBinContentEta > 1e-6) { //Tehre is something in the bin
+      nBinsGoodEta++;
+
+      if (getBinContentEta <= highLimitEtaPhi && getBinContentEta >= lowLimitEtaPhi) { //Good
+        //cout << "Ratio of bin " << iEta+1 << ": " << getBinContentEta << endl;
+        continue;
+      }
+
+      else { //Bad
+        //cout << "Bin " << iEta+1 << " is bad, ratio: " << getBinContentEta << endl;
+        nBinsBadEta++;
+      }
+
+    }
+  }
+
+  //-- ratio of "bad" bins over total number of bins
+  double badRatioEta = 0.;
+  badRatioEta = (nBinsBadEta/(double)nBinsGoodEta)*100;
+  cout << "For run: " << run << " the number of bad bins is: " << nBinsBadEta << " and the number of good bins is: " << nBinsGoodEta << " the ratio bad/good bins for Eta is: " << badRatioEta << endl;
+  if (badRatioEta <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for eta
+    //cout << "Run is good for eta" << endl;
+    isGoodEta = true;
+  }
+
+  else {  //Number of bins with bad ratio > 10% of the total number of bins -> run is bad for eta
+    //cout << "Run is bad for eta" << endl;
+    isGoodEta = false;
+  }
+
+  //-- loop through the bins of the phi histo MC/data ratio and check quality of comparison (ratio within limits)
+  for (int iPhi = 0; iPhi < nBinsPhi; iPhi++) {
+    double getBinContentPhi = 0.;
+    
+    getBinContentPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetBinContent(iPhi+1);
+    //Add condition to skip the bump at Phi -3.7
+    if (getBinContentPhi > 1e-6) { //Tehre is something in the bin
+      nBinsGoodPhi++;
+
+      if (getBinContentPhi <= highLimitEtaPhi && getBinContentPhi >= lowLimitEtaPhi) { //Good
+        //cout << "Ratio of bin " << iPhi+1 << ": " << getBinContentPhi << endl;
+        continue;
+      }
+
+      else { //Bad
+        //cout << "Bin " << iPhi+1 << " is bad, ratio: " << getBinContentPhi << endl;
+        nBinsBadPhi++;
+      }
+
+    }
+  }
+
+  //-- ratio of "bad" bins over total number of bins
+  double badRatioPhi = 0.;
+  badRatioPhi = (nBinsBadPhi/(double)nBinsGoodPhi)*100;
+  cout << "For run: " << run << " the number of bad bins is: " << nBinsBadPhi << " and the number of good bins is: " << nBinsGoodPhi << " the ratio bad/good bins for Phi is: " << badRatioPhi << endl;
+  if (badRatioPhi <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for Phi
+    //cout << "Run is good for Phi" << endl;
+    isGoodPhi = true;
+  }
+
+  else {  //Number of bins with bad ratio > 10% of the total number of bins -> run is bad for Phi
+    //cout << "Run is bad for Phi" << endl;
+    isGoodPhi = false;
+  }
+
+  //-- loop through the bins of the Pt histo MC/data ratio and check quality of comparison (ratio within limits)
+  for (int iPt = 0; iPt < nBinsPt; iPt++) {
+    double getBinContentPt = 0., getBinLimitPt = 0.;
+    
+    getBinContentPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinContent(iPt+1);
+    getBinLimitPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinLowEdge(iPt+1);
+    //Add condition to skip the bump at Pt -3.7
+    if (getBinContentPt > 1e-6 && ((int)getBinLimitPt <= 2)) { //Tehre is something in the bin
+      nBinsGoodPt++;
+
+      if (getBinContentPt <= highLimitPt && getBinContentPt >= lowLimitPt) { //Good
+        //cout << "Ratio of bin " << iPt+1 << ": " << getBinContentPt << endl;
+        continue;
+      }
+
+      else { //Bad
+        //cout << "Bin " << iPt+1 << " is bad, ratio: " << getBinContentPt << endl;
+        nBinsBadPt++;
+      }
+
+    }
+  }
+
+  //-- ratio of "bad" bins over total number of bins
+  double badRatioPt = 0.;
+  badRatioPt = (nBinsBadPt/(double)nBinsGoodPt)*100;
+  cout << "For run: " << run << " the number of bad bins is: " << nBinsBadPt << " and the number of good bins is: " << nBinsGoodPt << " the ratio bad/good bins for Pt is: " << badRatioPt << endl;
+  if (badRatioPt <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for Pt
+    //cout << "Run is good for Pt" << endl;
+    isGoodPt = true;
+  }
+
+  else {  //Number of bins with bad ratio > 10% of the total number of bins -> run is bad for Pt
+    //cout << "Run is bad for Pt" << endl;
+    isGoodPt = false;
+  }
+
+  //-- write to QC.txt file
+  if (isGoodEta && isGoodPhi) { //Good for eta and phi -> run is good
+    hOutGood << run << "\t" << isGoodEta << "\t" << isGoodPhi<< "\t" << isGoodPt << "\n";
+  }
+
+  else {
+    hOutBad << run << "\t" << isGoodEta << "\t" << isGoodPhi<< "\t" << isGoodPt << "\n";
+  }
+
   //-- draw Eta distrib Matched tracks MCH-MID + ratios 
   TCanvas *can_etadistrib_comparison;
   TLegend *leg_etadistrib_comparison[2];
@@ -816,7 +952,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
    }
   }
   
-
+  /*
   can_etadistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i.pdf[",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
   can_etadistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
   can_phidistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
@@ -825,5 +961,6 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   can_phidistrib_comparison_ptsel->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
   can_ptdistrib_comparison_ptsel->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
   can_ptdistrib_comparison_ptsel->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i.pdf]",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
+  */
   
 }
