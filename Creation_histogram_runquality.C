@@ -31,12 +31,15 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   gStyle->SetOptStat(0);
   
   //----------Input and Output directory - same directory of the config file
-  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/pp900GeV2024_apass1"}; //same directory of the config file
+  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/pp136TeV2024_apass1"}; //same directory of the config file
   
   Long_t *dummy1 = 0, *dummy2 = 0, *dummy3 = 0, *dummy4 = 0;
 
   //---------- Read .txt file for good runs
-  ifstream fileGood (Form("%s/goodRuns.txt",output_dir_name[0]));
+  ifstream fileGood (Form("%s/goodRuns.txt",output_dir_name[0])); //thresold
+  ifstream fileGood_2sigmas (Form("%s/goodRuns_2sigmas.txt",output_dir_name[0])); //thresold
+  ifstream fileGood_chi2 (Form("%s/goodRuns_chi2.txt",output_dir_name[0])); //thresold
+  
   
   if(!fileGood){
    cout << "File GoodRuns not Found!" << endl;  
@@ -66,9 +69,9 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   const char *labels_good[2] = {"#eta&&#phi GOOD", "#eta&&#phi&&p_{T} GOOD"};  // labels
   int colors_good[2] = {kGreen+2,kBlue};
   
-  TCanvas *c_good = new TCanvas("c_good", "Grafico Bad Runs", 800, 800);
+  TCanvas *c_good = new TCanvas("c_good", "Grafico Good Runs", 800, 800);
   c_good->cd();
-  TPie *pie_good = new TPie("pie_good", Form("Distribuzione Good Runs %s", period.c_str()), 2, percentages_good, nullptr);
+  TPie *pie_good = new TPie("pie_good", Form("Good Runs %s", period.c_str()), 2, percentages_good, nullptr);
   for (int i = 0; i < 2; i++) {
    pie_good->SetEntryLabel(i, "");
    pie_good->SetTextSize(0.03);
@@ -87,8 +90,110 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
+  
+  if(!fileGood_2sigmas){
+   cout << "File Good_2sigmasRuns not Found!" << endl;  
+   return;
+  }  
+  
+  int rungood_2sigmas_column = 0, Etagood_2sigmas_column = 0, Phigood_2sigmas_column = 0, Ptgood_2sigmas_column = 0; //file_good_2sigmas_index
+  int count_good_2sigmasruns = 0, count_Good_2sigmasEtaPhi = 0, count_Good_2sigmasEtaPhiPt = 0; //Good_2sigmas runs
+  
+  while(fileGood_2sigmas >> rungood_2sigmas_column >> Etagood_2sigmas_column >> Phigood_2sigmas_column >> Ptgood_2sigmas_column){
+    //counters for different conditions  
+    count_good_2sigmasruns++; 
+    if(Etagood_2sigmas_column==1 && Phigood_2sigmas_column==1 && Ptgood_2sigmas_column==0) count_Good_2sigmasEtaPhi++;
+    if(Etagood_2sigmas_column==1 && Phigood_2sigmas_column==1 && Ptgood_2sigmas_column==1) count_Good_2sigmasEtaPhiPt++;
+  }
+  
+  cout << "Tot good_2sigmas runs: " << count_good_2sigmasruns << " |etaphi: " << count_Good_2sigmasEtaPhi << " |also pt: " << count_Good_2sigmasEtaPhiPt << endl;
+  double percentages_good_2sigmas[2] = {0.,0.};
+  
+  for(int i=0;i<2;i++){
+   if(i==0) percentages_good_2sigmas[i] = (count_Good_2sigmasEtaPhi/(double)count_good_2sigmasruns) *100;
+    else percentages_good_2sigmas[i] = (count_Good_2sigmasEtaPhiPt/ (double)count_good_2sigmasruns) *100;
+   //cout << percentages_good_2sigmas[i] << endl; 
+  }
+  
+  //---- TPie graph for good_2sigmas runs
+  const char *labels_good_2sigmas[2] = {"#eta&&#phi GOOD", "#eta&&#phi&&p_{T} GOOD"};  // labels
+  int colors_good_2sigmas[2] = {kGreen+2,kBlue};
+  
+  TCanvas *c_good_2sigmas = new TCanvas("c_good_2sigmas", "Grafico Good_2sigmas Runs", 800, 800);
+  c_good_2sigmas->cd();
+  TPie *pie_good_2sigmas = new TPie("pie_good_2sigmas", Form("Good_2sigmas Runs %s", period.c_str()), 2, percentages_good_2sigmas, nullptr);
+  for (int i = 0; i < 2; i++) {
+   pie_good_2sigmas->SetEntryLabel(i, "");
+   pie_good_2sigmas->SetTextSize(0.03);
+   pie_good_2sigmas->SetEntryFillColor(i, colors_good_2sigmas[i]);
+  }
+  pie_good_2sigmas->SetLabelsOffset(0.02);
+  pie_good_2sigmas->Draw("3d");
+  TLegend * leg_good_2sigmas = new TLegend(0.25,0.75,0.95,0.9);
+  for (int i = 0; i < 2; i++) {
+   leg_good_2sigmas->SetTextSize(0.04);   
+   leg_good_2sigmas->AddEntry(pie_good_2sigmas->GetSlice(i), Form("%s: %.1f%%", labels_good_2sigmas[i], percentages_good_2sigmas[i]), "f");
+  }
+  leg_good_2sigmas->Draw();
+  
+  //c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  
+  
+  if(!fileGood_chi2){
+   cout << "File Good_chi2Runs not Found!" << endl;  
+   return;
+  }  
+  
+  int rungood_chi2_column = 0, Etagood_chi2_column = 0, Phigood_chi2_column = 0, Ptgood_chi2_column = 0; //file_good_chi2_index
+  int count_good_chi2runs = 0, count_Good_chi2EtaPhi = 0, count_Good_chi2EtaPhiPt = 0; //Good_chi2 runs
+  
+  while(fileGood_chi2 >> rungood_chi2_column >> Etagood_chi2_column >> Phigood_chi2_column >> Ptgood_chi2_column){
+    //counters for different conditions  
+    count_good_chi2runs++; 
+    if(Etagood_chi2_column==1 && Phigood_chi2_column==1 && Ptgood_chi2_column==0) count_Good_chi2EtaPhi++;
+    if(Etagood_chi2_column==1 && Phigood_chi2_column==1 && Ptgood_chi2_column==1) count_Good_chi2EtaPhiPt++;
+  }
+  
+  cout << "Tot good_chi2 runs: " << count_good_chi2runs << " |etaphi: " << count_Good_chi2EtaPhi << " |also pt: " << count_Good_chi2EtaPhiPt << endl;
+  double percentages_good_chi2[2] = {0.,0.};
+  
+  for(int i=0;i<2;i++){
+   if(i==0) percentages_good_chi2[i] = (count_Good_chi2EtaPhi/(double)count_good_chi2runs) *100;
+    else percentages_good_chi2[i] = (count_Good_chi2EtaPhiPt/ (double)count_good_chi2runs) *100;
+   //cout << percentages_good_chi2[i] << endl; 
+  }
+  
+  //---- TPie graph for good_chi2 runs
+  const char *labels_good_chi2[2] = {"#eta&&#phi GOOD", "#eta&&#phi&&p_{T} GOOD"};  // labels
+  int colors_good_chi2[2] = {kGreen+2,kBlue};
+  
+  TCanvas *c_good_chi2 = new TCanvas("c_good_chi2", "Grafico Good_chi2 Runs", 800, 800);
+  c_good_chi2->cd();
+  TPie *pie_good_chi2 = new TPie("pie_good_chi2", Form("Good_chi2 Runs %s", period.c_str()), 2, percentages_good_chi2, nullptr);
+  for (int i = 0; i < 2; i++) {
+   pie_good_chi2->SetEntryLabel(i, "");
+   pie_good_chi2->SetTextSize(0.03);
+   pie_good_chi2->SetEntryFillColor(i, colors_good_chi2[i]);
+  }
+  pie_good_chi2->SetLabelsOffset(0.02);
+  pie_good_chi2->Draw("3d");
+  TLegend * leg_good_chi2 = new TLegend(0.25,0.75,0.95,0.9);
+  for (int i = 0; i < 2; i++) {
+   leg_good_chi2->SetTextSize(0.04);   
+   leg_good_chi2->AddEntry(pie_good_chi2->GetSlice(i), Form("%s: %.1f%%", labels_good_chi2[i], percentages_good_chi2[i]), "f");
+  }
+  leg_good_chi2->Draw();
+  
+  //c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  
+  
+  
   //---------- Read .txt file for bad runs
   ifstream fileBad (Form("%s/badRuns.txt",output_dir_name[0]));
+  ifstream fileBad_2sigmas (Form("%s/badRuns_2sigmas.txt",output_dir_name[0])); //thresold
+  ifstream fileBad_chi2 (Form("%s/badRuns_chi2.txt",output_dir_name[0])); //thresold
   
   if(!fileBad){
    cout << "File GoodRuns not Found!" << endl;  
@@ -123,7 +228,7 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   
   TCanvas *c_bad = new TCanvas("c_bad", "Grafico Bad Runs", 800, 800);
   c_bad->cd();
-  TPie *pie_bad = new TPie("pie_bad", Form("Distribuzione Bad Runs %s", period.c_str()), 3, percentages_bad, nullptr);
+  TPie *pie_bad = new TPie("pie_bad", Form("Bad Runs %s", period.c_str()), 3, percentages_bad, nullptr);
   for (int i = 0; i < 3; i++) {
    pie_bad->SetEntryLabel(i, "");
    pie_bad->SetTextSize(0.03);
@@ -139,7 +244,112 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   leg_bad->Draw();
   
   c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  
+  
+  if(!fileBad_2sigmas){
+   cout << "File GoodRuns not Found!" << endl;  
+   return;
+  } 
+  
+  int runbad_2sigmas_column = 0, Etabad_2sigmas_column = 0, Phibad_2sigmas_column = 0, Ptbad_2sigmas_column = 0; //file_bad_2sigmas_index
+  int count_bad_2sigmasruns = 0, count_Bad_2sigmasEta = 0, count_Bad_2sigmasPhi = 0, count_Bad_2sigmasEtaPhi = 0; //Bad_2sigmas runs
+  
+  while(fileBad_2sigmas >> runbad_2sigmas_column >> Etabad_2sigmas_column >> Phibad_2sigmas_column >> Ptbad_2sigmas_column){
+    //counters for different conditions  
+    count_bad_2sigmasruns++;
+    if(Etabad_2sigmas_column==0 && Phibad_2sigmas_column==1) count_Bad_2sigmasEta++;
+    if(Etabad_2sigmas_column==1 && Phibad_2sigmas_column==0) count_Bad_2sigmasPhi++;
+    if(Etabad_2sigmas_column==0 && Phibad_2sigmas_column==0) count_Bad_2sigmasEtaPhi++;  
+  }
+  
+  cout << "Tot bad_2sigmas runs: " << count_bad_2sigmasruns << " |eta: " << count_Bad_2sigmasEta << " |phi: " << count_Bad_2sigmasPhi << " |etaphi: " << count_Bad_2sigmasEtaPhi << endl;
+  
+  double percentages_bad_2sigmas[3] = {0.,0.,0.};
+  
+  for(int i=0;i<3;i++){
+   if(i==0) percentages_bad_2sigmas[i] = (count_Bad_2sigmasEta/ (double)count_bad_2sigmasruns) *100;
+   if(i==1) percentages_bad_2sigmas[i] = (count_Bad_2sigmasPhi/ (double)count_bad_2sigmasruns) *100;
+   if(i==2) percentages_bad_2sigmas[i] = (count_Bad_2sigmasEtaPhi/ (double)count_bad_2sigmasruns) *100;
+   //cout << percentages_bad_2sigmas[i] << endl;
+  }
+  
+  //---- TPie graph for bad_2sigmas runs
+  const char *labels_bad_2sigmas[3] = {"#eta BAD", "#phi BAD", "#eta&&#phi BAD"};
+  int colors_bad_2sigmas[3] = {kOrange+7, kYellow+1, kRed+2};
+  
+  TCanvas *c_bad_2sigmas = new TCanvas("c_bad_2sigmas", "Grafico Bad_2sigmas Runs", 800, 800);
+  c_bad_2sigmas->cd();
+  TPie *pie_bad_2sigmas = new TPie("pie_bad_2sigmas", Form("Bad_2sigmas Runs %s", period.c_str()), 3, percentages_bad_2sigmas, nullptr);
+  for (int i = 0; i < 3; i++) {
+   pie_bad_2sigmas->SetEntryLabel(i, "");
+   pie_bad_2sigmas->SetTextSize(0.03);
+   pie_bad_2sigmas->SetEntryFillColor(i, colors_bad_2sigmas[i]);
+  }
+  pie_bad_2sigmas->SetLabelsOffset(0.02);
+  pie_bad_2sigmas->Draw("3d");
+  TLegend * leg_bad_2sigmas = new TLegend(0.45,0.75,0.95,0.9);
+  for (int i = 0; i < 3; i++) {
+   leg_bad_2sigmas->SetTextSize(0.04);   
+   leg_bad_2sigmas->AddEntry(pie_bad_2sigmas->GetSlice(i), Form("%s: %.1f%%", labels_bad_2sigmas[i], percentages_bad_2sigmas[i]), "f");
+  }
+  leg_bad_2sigmas->Draw();
+  
+  c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  
+  
+  if(!fileBad_chi2){
+   cout << "File GoodRuns not Found!" << endl;  
+   return;
+  } 
+  
+  int runbad_chi2_column = 0, Etabad_chi2_column = 0, Phibad_chi2_column = 0, Ptbad_chi2_column = 0; //file_bad_chi2_index
+  int count_bad_chi2runs = 0, count_Bad_chi2Eta = 0, count_Bad_chi2Phi = 0, count_Bad_chi2EtaPhi = 0; //Bad_chi2 runs
+  
+  while(fileBad_chi2 >> runbad_chi2_column >> Etabad_chi2_column >> Phibad_chi2_column >> Ptbad_chi2_column){
+    //counters for different conditions  
+    count_bad_chi2runs++;
+    if(Etabad_chi2_column==0 && Phibad_chi2_column==1) count_Bad_chi2Eta++;
+    if(Etabad_chi2_column==1 && Phibad_chi2_column==0) count_Bad_chi2Phi++;
+    if(Etabad_chi2_column==0 && Phibad_chi2_column==0) count_Bad_chi2EtaPhi++;  
+  }
+  
+  cout << "Tot bad_chi2 runs: " << count_bad_chi2runs << " |eta: " << count_Bad_chi2Eta << " |phi: " << count_Bad_chi2Phi << " |etaphi: " << count_Bad_chi2EtaPhi << endl;
+  
+  double percentages_bad_chi2[3] = {0.,0.,0.};
+  
+  for(int i=0;i<3;i++){
+   if(i==0) percentages_bad_chi2[i] = (count_Bad_chi2Eta/ (double)count_bad_chi2runs) *100;
+   if(i==1) percentages_bad_chi2[i] = (count_Bad_chi2Phi/ (double)count_bad_chi2runs) *100;
+   if(i==2) percentages_bad_chi2[i] = (count_Bad_chi2EtaPhi/ (double)count_bad_chi2runs) *100;
+   //cout << percentages_bad_chi2[i] << endl;
+  }
+  
+  //---- TPie graph for bad_chi2 runs
+  const char *labels_bad_chi2[3] = {"#eta BAD", "#phi BAD", "#eta&&#phi BAD"};
+  int colors_bad_chi2[3] = {kOrange+7, kYellow+1, kRed+2};
+  
+  TCanvas *c_bad_chi2 = new TCanvas("c_bad_chi2", "Grafico Bad_chi2 Runs", 800, 800);
+  c_bad_chi2->cd();
+  TPie *pie_bad_chi2 = new TPie("pie_bad_chi2", Form("Bad_chi2 Runs %s", period.c_str()), 3, percentages_bad_chi2, nullptr);
+  for (int i = 0; i < 3; i++) {
+   pie_bad_chi2->SetEntryLabel(i, "");
+   pie_bad_chi2->SetTextSize(0.03);
+   pie_bad_chi2->SetEntryFillColor(i, colors_bad_chi2[i]);
+  }
+  pie_bad_chi2->SetLabelsOffset(0.02);
+  pie_bad_chi2->Draw("3d");
+  TLegend * leg_bad_chi2 = new TLegend(0.45,0.75,0.95,0.9);
+  for (int i = 0; i < 3; i++) {
+   leg_bad_chi2->SetTextSize(0.04);   
+   leg_bad_chi2->AddEntry(pie_bad_chi2->GetSlice(i), Form("%s: %.1f%%", labels_bad_chi2[i], percentages_bad_chi2[i]), "f");
+  }
+  leg_bad_chi2->Draw();
+  
+  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
  
+  
   
 }

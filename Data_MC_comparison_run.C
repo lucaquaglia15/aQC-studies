@@ -28,7 +28,7 @@
 
 using namespace std;
 
-void Data_MC_comparison_run(string MC_prod, string period, string apass, int run){
+void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, int run){
   
   cout << "MC_prod: " << MC_prod << endl;
   cout << "period: " << period << endl;
@@ -39,7 +39,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   gStyle->SetOptStat(0);
   
   //----------Input and Output directory - same directory of the config file
-  char output_dir_name[1][200] = {"/home/luca/cernbox/assegnoTorino/MIDQC/aQC-studies/pp13TeV2023_apass4"}; //same directory of the config file
+  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/PbPb2023_apass4"}; //same directory of the config file
   
   Long_t *dummy1 = 0, *dummy2 = 0, *dummy3 = 0, *dummy4 = 0;
     
@@ -62,12 +62,27 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   file_in_MC = new TFile(Form("%s/%i/AnalysisResultsMC_run_%i.root",output_dir_name[0],run,run),"read");
   printf("Open File data: %s\n",file_in_MC->GetName());
 
-  //---------- Create .txt file for good/bad/la runs
+  //---------- Create .txt file for good/bad/la runs - setting thresholds
   ofstream hOutGood;
   hOutGood.open(Form("%s/goodRuns.txt",output_dir_name[0]), std::ios_base::app);
 
   ofstream hOutBad;
   hOutBad.open(Form("%s/badRuns.txt",output_dir_name[0]), std::ios_base::app);
+  
+  //---------- Create .txt file for good/bad/la runs - 2sigmas
+  ofstream hOutGood_2sigmas;
+  hOutGood_2sigmas.open(Form("%s/goodRuns_2sigmas.txt",output_dir_name[0]), std::ios_base::app);
+
+  ofstream hOutBad_2sigmas;
+  hOutBad_2sigmas.open(Form("%s/badRuns_2sigmas.txt",output_dir_name[0]), std::ios_base::app);
+  
+  //---------- Create .txt file for good/bad/la runs - chi2/ndof
+  ofstream hOutGood_chi2;
+  hOutGood_chi2.open(Form("%s/goodRuns_chi2.txt",output_dir_name[0]), std::ios_base::app);
+
+  ofstream hOutBad_chi2;
+  hOutBad_chi2.open(Form("%s/badRuns_chi2.txt",output_dir_name[0]), std::ios_base::app);
+  
   
   //---------- Interesting objects: pT, eta, phi distributions
   string objPath = "analysis-muon-selection/output";
@@ -180,7 +195,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
 
   bool isGoodEta = 0, isGoodPhi = 0, isGoodPt = 0;
 
-  //-- loop through the bins of the eta histo MC/data ratio and check quality of comparison (ratio within limits)
+  //-- loop through the bins of the eta histo MC/data ratio and check quality of comparison (ratio within limits) 
   for (int iEta = 0; iEta < nBinsEta; iEta++) {
     double getBinContentEta = 0.;
     
@@ -205,7 +220,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   //-- ratio of "bad" bins over total number of bins
   double badRatioEta = 0.;
   badRatioEta = (nBinsBadEta/(double)nBinsGoodEta)*100;
-  cout << "For run: " << run << " the number of bad bins is: " << nBinsBadEta << " and the number of good bins is: " << nBinsGoodEta << " the ratio bad/good bins for Eta is: " << badRatioEta << endl;
+  //cout << "For run: " << run << " the number of bad bins is: " << nBinsBadEta << " and the number of good bins is: " << nBinsGoodEta << " the ratio bad/good bins for Eta is: " << badRatioEta << endl;
   if (badRatioEta <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for eta
     //cout << "Run is good for eta" << endl;
     isGoodEta = true;
@@ -241,7 +256,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   //-- ratio of "bad" bins over total number of bins
   double badRatioPhi = 0.;
   badRatioPhi = (nBinsBadPhi/(double)nBinsGoodPhi)*100;
-  cout << "For run: " << run << " the number of bad bins is: " << nBinsBadPhi << " and the number of good bins is: " << nBinsGoodPhi << " the ratio bad/good bins for Phi is: " << badRatioPhi << endl;
+  //cout << "For run: " << run << " the number of bad bins is: " << nBinsBadPhi << " and the number of good bins is: " << nBinsGoodPhi << " the ratio bad/good bins for Phi is: " << badRatioPhi << endl;
   if (badRatioPhi <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for Phi
     //cout << "Run is good for Phi" << endl;
     isGoodPhi = true;
@@ -259,7 +274,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
     getBinContentPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinContent(iPt+1);
     getBinLimitPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinLowEdge(iPt+1);
     //Add condition to skip the bump at Pt -3.7
-    if (getBinContentPt > 1e-6 && ((int)getBinLimitPt <= 2)) { //Tehre is something in the bin
+    if (getBinContentPt > 1e-6 && ((int)getBinLimitPt <= 2)) { //There is something in the bin
       nBinsGoodPt++;
 
       if (getBinContentPt <= highLimitPt && getBinContentPt >= lowLimitPt) { //Good
@@ -278,7 +293,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   //-- ratio of "bad" bins over total number of bins
   double badRatioPt = 0.;
   badRatioPt = (nBinsBadPt/(double)nBinsGoodPt)*100;
-  cout << "For run: " << run << " the number of bad bins is: " << nBinsBadPt << " and the number of good bins is: " << nBinsGoodPt << " the ratio bad/good bins for Pt is: " << badRatioPt << endl;
+  //cout << "For run: " << run << " the number of bad bins is: " << nBinsBadPt << " and the number of good bins is: " << nBinsGoodPt << " the ratio bad/good bins for Pt is: " << badRatioPt << endl;
   if (badRatioPt <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for Pt
     //cout << "Run is good for Pt" << endl;
     isGoodPt = true;
@@ -298,6 +313,171 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
     hOutBad << run << "\t" << isGoodEta << "\t" << isGoodPhi<< "\t" << isGoodPt << "\n";
   }
 
+  
+  //--check nbins+bin width 
+  //cout << "nbins eta: " << nBinsEta << " |nbins phi:" << nBinsPhi << " |nbins pt:" << nBinsPt << endl;
+  //cout << "ETA min: " << hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin() << " |max: " << hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax() << " |bin width: " << (hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax()-hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin())/nBinsEta << endl;
+  //cout << "PHI min: " << hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin() << " |max: " << hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax() << " |bin width: " << (hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax()-hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin())/nBinsPhi << endl;
+  
+  
+  //-- check quality of comparison MC/data performing a fit with a straight line and check deviations from the fit in terms of number of sigmas or with chi square method
+  TF1 *fitFuncEta = new TF1("fitFuncEta","[0]+[1]*x",hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
+  fitFuncEta->SetParameters(1,0);
+  hRatio_Eta_matchedMchMid_ptsel_MC_data->Fit(fitFuncEta,"R");
+  
+  TF1 *fitFuncPhi = new TF1("fitFuncPhi","[0]+[1]*x",hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
+  fitFuncPhi->SetParameters(1,0);
+  hRatio_Phi_matchedMchMid_ptsel_MC_data->Fit(fitFuncPhi,"R");
+  
+  TF1 *fitFuncPt = new TF1("fitFuncPt","[0]+[1]*x",hRatio_Pt_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Pt_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
+  fitFuncPt->SetParameters(1,0);
+  hRatio_Pt_matchedMchMid_ptsel_MC_data->Fit(fitFuncPt,"R");
+  
+  int totalbinsEta = 0, totalbinsPhi = 0, totalbinsPt = 0;
+  int countAbove2SigmaEta = 0, countAbove2SigmaPhi = 0, countAbove2SigmaPt = 0;
+  double chi2Eta = 0., chi2Phi = 0., chi2Pt = 0.;
+  int ndofEta = 0, ndofPhi = 0, ndofPt = 0;
+  double chi2_ndofEta = 0., chi2_ndofPhi = 0., chi2_ndofPt = 0.;
+  
+  for (int iEta = 0; iEta < nBinsEta; iEta++) {
+    double xEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetBinCenter(iEta+1);
+    double ratioEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetBinContent(iEta+1);
+    double errorEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetBinError(iEta+1);
+    
+    if(errorEta>0){
+     totalbinsEta++;
+     double fitValueEta = fitFuncEta->Eval(xEta);
+     double deltaSigmaEta = (ratioEta-fitValueEta)/errorEta;
+     
+     //-- counting bin number over 2 sigma
+     if(fabs(deltaSigmaEta) > 2) {
+       countAbove2SigmaEta++;
+     }
+     
+     //-- counting chi2
+     chi2Eta +=pow(deltaSigmaEta,2);
+     ndofEta++;
+     
+    }
+  }
+  
+  chi2_ndofEta = (ndofEta>0) ? (chi2Eta/ndofEta):0;
+  
+  
+  for (int iPhi = 0; iPhi < nBinsPhi; iPhi++) {
+    double xPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetBinCenter(iPhi+1);
+    double ratioPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetBinContent(iPhi+1);
+    double errorPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetBinError(iPhi+1);
+    
+    if(errorPhi>0){
+     totalbinsPhi++;
+     double fitValuePhi = fitFuncPhi->Eval(xPhi);
+     double deltaSigmaPhi = (ratioPhi-fitValuePhi)/errorPhi;
+     
+     //-- counting bin number over 2 sigma
+     if(fabs(deltaSigmaPhi) > 2) {
+       countAbove2SigmaPhi++;
+     }
+     
+     //-- counting chi2
+     chi2Phi +=pow(deltaSigmaPhi,2);
+     ndofPhi++;
+     
+    }
+  }
+  
+  chi2_ndofPhi = (ndofPhi>0) ? (chi2Phi/ndofPhi):0;
+  
+  
+  for (int iPt = 0; iPt < nBinsPt; iPt++) {
+    double xPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinCenter(iPt+1);
+    double ratioPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinContent(iPt+1);
+    double errorPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinError(iPt+1);
+    
+    if(errorPt>0){
+     totalbinsPt++;
+     double fitValuePt = fitFuncPt->Eval(xPt);
+     double deltaSigmaPt = (ratioPt-fitValuePt)/errorPt;
+     
+     //-- counting bin number over 2 sigma
+     if(fabs(deltaSigmaPt) > 2) {
+       countAbove2SigmaPt++;
+     }
+     
+     //-- counting chi2
+     chi2Pt +=pow(deltaSigmaPt,2);
+     ndofPt++;
+     
+    }
+  }
+  
+  chi2_ndofPt = (ndofPt>0) ? (chi2Pt/ndofPt):0;
+  
+  //cout << "ETA -- nbins over threshold: " << nBinsBadEta << " |over2sigma: " << countAbove2SigmaEta << " |chi2/ndof: " << chi2_ndofEta << endl;
+  //cout << "PHI -- nbins over threshold: " << nBinsBadPhi << " |over2sigma: " << countAbove2SigmaPhi << " |chi2/ndof: " << chi2_ndofPhi << endl;
+  //cout << "PT  -- nbins over threshold: " << nBinsBadPt << " |over2sigma: " << countAbove2SigmaPt << " |chi2/ndof: " << chi2_ndofPt << endl;
+  
+  //--Bad run if nBins with bin number over 2 sigma > 10% of the total number of bins
+  double badRatioAbove2SigmaEta = 0., badRatioAbove2SigmaPhi = 0., badRatioAbove2SigmaPt = 0.; 
+  badRatioAbove2SigmaEta = (countAbove2SigmaEta/(double)totalbinsEta)*100;
+  badRatioAbove2SigmaPhi = (countAbove2SigmaPhi/(double)totalbinsPhi)*100;
+  badRatioAbove2SigmaPt = (countAbove2SigmaPt/(double)totalbinsPt)*100;
+  bool isGoodAbove2SigmaEta = 0, isGoodAbove2SigmaPhi = 0, isGoodAbove2SigmaPt = 0;
+  
+  if (badRatioAbove2SigmaEta <= 10) { //Number of bins with bin number over 2 sigma <= 10% of the total number of bins -> run is good for Eta
+    isGoodAbove2SigmaEta = true;
+  }
+  else {  //Number of bins with bin number over 2 sigma > 10% of the total number of bins -> run is bad for Eta
+    isGoodAbove2SigmaEta = false;
+  }
+
+
+  if (badRatioAbove2SigmaPhi <= 10) { //Number of bins with bin number over 2 sigma <= 10% of the total number of bins -> run is good for Phi
+    isGoodAbove2SigmaPhi = true;
+  }
+  else {  //Number of bins with bin number over 2 sigma > 10% of the total number of bins -> run is bad for Phi
+    isGoodAbove2SigmaPhi = false;
+  }
+
+  
+  if (badRatioAbove2SigmaPt <= 10) { //Number of bins with bin number over 2 sigma <= 10% of the total number of bins -> run is good for Pt
+    isGoodAbove2SigmaPt = true;
+  }
+  else {  //Number of bins with bin number over 2 sigma > 10% of the total number of bins -> run is bad for Pt
+    isGoodAbove2SigmaPt = false;
+  }
+
+  
+  //-- write to QC.txt file
+  if (isGoodAbove2SigmaEta && isGoodAbove2SigmaPhi) { //Good for eta and phi -> run is good
+    hOutGood_2sigmas << run << "\t" << isGoodAbove2SigmaEta << "\t" << isGoodAbove2SigmaPhi<< "\t" << isGoodAbove2SigmaPt << "\n";
+  }
+  
+  else {
+    hOutGood_2sigmas << run << "\t" << isGoodAbove2SigmaEta << "\t" << isGoodAbove2SigmaPhi<< "\t" << isGoodAbove2SigmaPt << "\n";
+  }
+  
+  
+  //--Bad run if chi2_ndof > 2
+  bool isGoodChi2Eta = 0, isGoodChi2Phi = 0, isGoodChi2Pt = 0;
+  if(chi2_ndofEta<=2.) isGoodChi2Eta = true;
+   else isGoodChi2Eta = false;
+   
+  if(chi2_ndofPhi<=2.) isGoodChi2Phi = true;
+   else isGoodChi2Phi = false;
+  
+  if(chi2_ndofPt<=2.) isGoodChi2Pt = true;
+   else isGoodChi2Pt = false;
+  
+  //-- write to QC.txt file
+  if (isGoodChi2Eta && isGoodChi2Phi) { //Good for eta and phi -> run is good
+    hOutGood_chi2 << run << "\t" << isGoodChi2Eta << "\t" << isGoodChi2Phi<< "\t" << isGoodChi2Pt << "\n";
+  }
+  
+  else {
+    hOutGood_chi2 << run << "\t" << isGoodChi2Eta << "\t" << isGoodChi2Phi<< "\t" << isGoodChi2Pt << "\n";
+  }
+  
   //-- draw Eta distrib Matched tracks MCH-MID + ratios 
   TCanvas *can_etadistrib_comparison;
   TLegend *leg_etadistrib_comparison[2];
@@ -617,7 +797,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
     hRatio_Pt_matchedMchMid_MC_data->SetMarkerSize(1.5);
     //hRatio_Pt_matchedMchMid_MC_data->SetLineWidth(2);
     hRatio_Pt_matchedMchMid_MC_data->Draw("EP");
-    line_ptdistrib_comparison = new TLine(0,1,15,1);
+    line_ptdistrib_comparison = new TLine(0,1,5,1);
     line_ptdistrib_comparison->SetLineColor(kGreen+3);
     line_ptdistrib_comparison->Draw("L");
    }
@@ -946,7 +1126,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
     hRatio_Pt_matchedMchMid_ptsel_MC_data->SetMarkerSize(1.5);
     //hRatio_Pt_matchedMchMid_ptsel_MC_data->SetLineWidth(2);
     hRatio_Pt_matchedMchMid_ptsel_MC_data->Draw("EP");
-    line_ptdistrib_comparison_ptsel = new TLine(0,1,15,1);
+    line_ptdistrib_comparison_ptsel = new TLine(0,1,5,1);
     line_ptdistrib_comparison_ptsel->SetLineColor(kGreen+3);
     line_ptdistrib_comparison_ptsel->Draw("L");
    }
