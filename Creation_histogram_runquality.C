@@ -31,7 +31,7 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   gStyle->SetOptStat(0);
   
   //----------Input and Output directory - same directory of the config file
-  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/PbPb2023_apass4"}; //same directory of the config file
+  char output_dir_name[1][200] = {"/home/luca/cernbox/assegnoTorino/MIDQC/aQC-studies/pp900GeV_apass1"}; //same directory of the config file
   
   Long_t *dummy1 = 0, *dummy2 = 0, *dummy3 = 0, *dummy4 = 0;
 
@@ -221,7 +221,7 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
    if(i==2) percentages_bad[i] = (count_BadEtaPhi/ (double)count_badruns) *100;
    //cout << percentages_bad[i] << endl;
   }
-  
+
   //---- TPie graph for bad runs
   const char *labels_bad[3] = {"#eta BAD", "#phi BAD", "#eta&&#phi BAD"};
   int colors_bad[3] = {kOrange+7, kYellow+1, kRed+2};
@@ -245,7 +245,6 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   
   c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   //c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  
   
   if(!fileBad_2sigmas){
    cout << "File GoodRuns not Found!" << endl;  
@@ -348,7 +347,99 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   leg_bad_chi2->Draw();
   
   c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+
+  //Total number of runs
+  int count_totRuns = count_goodruns + count_badruns;
+
+  const char *labels_qualityGeneral[2] = {"GOOD", "BAD"};
+  int colors_qualityGeneral[2] = {kGreen+2, kRed+2};
+
+  //Charts to show percentages of good/bad runs
+  double percentages_goodBad[2] = {0.,0.};
+  double percentages_goodBad_2sigma[2] = {0.,0.};
+  double percentages_goodBad_chisquare[2] = {0.,0.};
+
+  for(int i=0;i<2;i++){
+    if(i==0) percentages_goodBad[i] = (count_goodruns/ (double)count_totRuns) *100;
+    if(i==1) percentages_goodBad[i] = (count_badruns/ (double)count_totRuns) *100;
+    //cout << percentages_goodBad[i] << endl;
+  }
+
+  for(int i=0;i<2;i++){
+    if(i==0) percentages_goodBad_2sigma[i] = (count_good_2sigmasruns/ (double)count_totRuns) *100;
+    if(i==1) percentages_goodBad_2sigma[i] = (count_bad_2sigmasruns/ (double)count_totRuns) *100;
+    //cout << percentages_goodBad_2sigma[i] << endl;
+  }
+
+  for(int i=0;i<2;i++){
+    if(i==0) percentages_goodBad_chisquare[i] = (count_good_chi2runs/ (double)count_totRuns) *100;
+    if(i==1) percentages_goodBad_chisquare[i] = (count_bad_chi2runs/ (double)count_totRuns) *100;
+    //cout << percentages_goodBad_chisquare[i] << endl;
+  }
+
+  //Good/bad thresholds
+  TCanvas *c_goodbad = new TCanvas("c_goodbad", "Grafico Good/Bad Runs", 800, 800);
+  c_goodbad->cd();
+  TPie *pie_goodbad = new TPie("pie_goodbad", Form("Good Bad Runs_thresholds %s", period.c_str()), 2, percentages_goodBad, nullptr);
+  for (int i = 0; i < 2; i++) {
+   pie_goodbad->SetEntryLabel(i, "");
+   pie_goodbad->SetTextSize(0.03);
+   pie_goodbad->SetEntryFillColor(i, colors_qualityGeneral[i]);
+  }
+  pie_goodbad->SetLabelsOffset(0.02);
+  pie_goodbad->Draw("3d");
+  TLegend * leg_goodbad = new TLegend(0.45,0.75,0.95,0.9);
+  for (int i = 0; i < 2; i++) {
+   leg_goodbad->SetTextSize(0.04);   
+   leg_goodbad->AddEntry(pie_goodbad->GetSlice(i), Form("%s: %.1f%%", labels_qualityGeneral[i], percentages_goodBad[i]), "f");
+  }
+  leg_goodbad->Draw();
+  
+  c_goodbad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_goodbad->Print(Form("%s/GoodBadHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+
+  //Good/bad 2 sigma
+  TCanvas *c_goodbad_2sigma = new TCanvas("c_goodbad_2sigma", "Grafico Good/Bad Runs 2 sigma", 800, 800);
+  c_goodbad_2sigma->cd();
+  TPie *pie_goodbad_2sigma = new TPie("pie_goodbad_2sigma", Form("Good Bad Runs_2sigma %s", period.c_str()), 2, percentages_goodBad_2sigma, nullptr);
+  for (int i = 0; i < 2; i++) {
+   pie_goodbad_2sigma->SetEntryLabel(i, "");
+   pie_goodbad_2sigma->SetTextSize(0.03);
+   pie_goodbad_2sigma->SetEntryFillColor(i, colors_qualityGeneral[i]);
+  }
+  pie_goodbad_2sigma->SetLabelsOffset(0.02);
+  pie_goodbad_2sigma->Draw("3d");
+  TLegend * leg_goodbad_2sigma = new TLegend(0.45,0.75,0.95,0.9);
+  for (int i = 0; i < 2; i++) {
+   leg_goodbad_2sigma->SetTextSize(0.04);   
+   leg_goodbad_2sigma->AddEntry(pie_goodbad_2sigma->GetSlice(i), Form("%s: %.1f%%", labels_qualityGeneral[i], percentages_goodBad_2sigma[i]), "f");
+  }
+  leg_goodbad_2sigma->Draw();
+  
+  c_goodbad_2sigma->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_goodbad_2sigma->Print(Form("%s/GoodBadHisto_2sigma_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+
+  //Good/bad chi2
+  TCanvas *c_goodbad_chi2 = new TCanvas("c_goodbad_chi2", "Grafico Good/Bad Runs chi2", 800, 800);
+  c_goodbad_chi2->cd();
+  TPie *pie_goodbad_chi2 = new TPie("pie_goodbad_chi2", Form("Good Bad Runs_chi2 %s", period.c_str()), 2, percentages_goodBad_chisquare, nullptr);
+  for (int i = 0; i < 2; i++) {
+   pie_goodbad_chi2->SetEntryLabel(i, "");
+   pie_goodbad_chi2->SetTextSize(0.03);
+   pie_goodbad_chi2->SetEntryFillColor(i, colors_qualityGeneral[i]);
+  }
+  pie_goodbad_chi2->SetLabelsOffset(0.02);
+  pie_goodbad_chi2->Draw("3d");
+  TLegend * leg_goodbad_chi2 = new TLegend(0.45,0.75,0.95,0.9);
+  for (int i = 0; i < 2; i++) {
+   leg_goodbad_chi2->SetTextSize(0.04);   
+   leg_goodbad_chi2->AddEntry(pie_goodbad_chi2->GetSlice(i), Form("%s: %.1f%%", labels_qualityGeneral[i], percentages_goodBad_chisquare[i]), "f");
+  }
+  leg_goodbad_chi2->Draw();
+  
+  c_goodbad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_goodbad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
  
   
   
