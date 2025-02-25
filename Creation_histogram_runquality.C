@@ -86,8 +86,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_good->Draw();
   
-  c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   
@@ -136,8 +136,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_good_2sigmas->Draw();
   
-  //c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   if(!fileGood_chi2){
@@ -185,8 +185,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_good_chi2->Draw();
   
-  //c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   
@@ -243,8 +243,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_bad->Draw();
   
-  c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  //c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   if(!fileBad_2sigmas){
@@ -295,8 +295,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_bad_2sigmas->Draw();
   
-  c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  //c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   if(!fileBad_chi2){
@@ -347,8 +347,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_bad_chi2->Draw();
   
-  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
  
   
   
