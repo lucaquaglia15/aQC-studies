@@ -28,7 +28,7 @@
 
 using namespace std;
 
-void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, int run){
+void Data_MC_comparison_run(string MC_prod, string period, string apass, int run){
   
   cout << "MC_prod: " << MC_prod << endl;
   cout << "period: " << period << endl;
@@ -39,7 +39,7 @@ void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, in
   gStyle->SetOptStat(0);
   
   //----------Input and Output directory - same directory of the config file
-  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/PbPb2023_apass4"}; //same directory of the config file
+  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/pp136TeV2024_apass1"}; //same directory of the config file
   
   Long_t *dummy1 = 0, *dummy2 = 0, *dummy3 = 0, *dummy4 = 0;
     
@@ -320,17 +320,17 @@ void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, in
   //cout << "PHI min: " << hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin() << " |max: " << hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax() << " |bin width: " << (hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax()-hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin())/nBinsPhi << endl;
   
   
-  //-- check quality of comparison MC/data performing a fit with a straight line and check deviations from the fit in terms of number of sigmas or with chi square method
-  TF1 *fitFuncEta = new TF1("fitFuncEta","[0]+[1]*x",hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
-  fitFuncEta->SetParameters(1,0);
+  //-- check quality of comparison MC/data performing a fit with a straight line (pol0) and check deviations from the fit in terms of number of sigmas or with chi square method
+  TF1 *fitFuncEta = new TF1("fitFuncEta","[0]",hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
+  fitFuncEta->SetParameters(0,1);
   hRatio_Eta_matchedMchMid_ptsel_MC_data->Fit(fitFuncEta,"R");
   
-  TF1 *fitFuncPhi = new TF1("fitFuncPhi","[0]+[1]*x",hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
-  fitFuncPhi->SetParameters(1,0);
+  TF1 *fitFuncPhi = new TF1("fitFuncPhi","[0]",hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
+  fitFuncPhi->SetParameters(0,1);
   hRatio_Phi_matchedMchMid_ptsel_MC_data->Fit(fitFuncPhi,"R");
   
-  TF1 *fitFuncPt = new TF1("fitFuncPt","[0]+[1]*x",hRatio_Pt_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Pt_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
-  fitFuncPt->SetParameters(1,0);
+  TF1 *fitFuncPt = new TF1("fitFuncPt","[0]",0.7,2);//hRatio_Pt_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Pt_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
+  fitFuncPt->SetParameters(0,1);
   hRatio_Pt_matchedMchMid_ptsel_MC_data->Fit(fitFuncPt,"R");
   
   int totalbinsEta = 0, totalbinsPhi = 0, totalbinsPt = 0;
@@ -344,7 +344,7 @@ void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, in
     double ratioEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetBinContent(iEta+1);
     double errorEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetBinError(iEta+1);
     
-    if(errorEta>0){
+    if(errorEta>1e-6){
      totalbinsEta++;
      double fitValueEta = fitFuncEta->Eval(xEta);
      double deltaSigmaEta = (ratioEta-fitValueEta)/errorEta;
@@ -369,7 +369,7 @@ void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, in
     double ratioPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetBinContent(iPhi+1);
     double errorPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetBinError(iPhi+1);
     
-    if(errorPhi>0){
+    if(errorPhi>1e-6){
      totalbinsPhi++;
      double fitValuePhi = fitFuncPhi->Eval(xPhi);
      double deltaSigmaPhi = (ratioPhi-fitValuePhi)/errorPhi;
@@ -390,11 +390,13 @@ void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, in
   
   
   for (int iPt = 0; iPt < nBinsPt; iPt++) {
+    double getBinLimitPt = 0.;  
     double xPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinCenter(iPt+1);
     double ratioPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinContent(iPt+1);
     double errorPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinError(iPt+1);
+    getBinLimitPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinLowEdge(iPt+1);
     
-    if(errorPt>0){
+    if((int)getBinLimitPt <= 2 && errorPt>1e-6){ //consider only bins <=2 GeV/c
      totalbinsPt++;
      double fitValuePt = fitFuncPt->Eval(xPt);
      double deltaSigmaPt = (ratioPt-fitValuePt)/errorPt;
@@ -423,6 +425,7 @@ void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, in
   badRatioAbove2SigmaPhi = (countAbove2SigmaPhi/(double)totalbinsPhi)*100;
   badRatioAbove2SigmaPt = (countAbove2SigmaPt/(double)totalbinsPt)*100;
   bool isGoodAbove2SigmaEta = 0, isGoodAbove2SigmaPhi = 0, isGoodAbove2SigmaPt = 0;
+  
   
   if (badRatioAbove2SigmaEta <= 10) { //Number of bins with bin number over 2 sigma <= 10% of the total number of bins -> run is good for Eta
     isGoodAbove2SigmaEta = true;
@@ -454,7 +457,7 @@ void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, in
   }
   
   else {
-    hOutGood_2sigmas << run << "\t" << isGoodAbove2SigmaEta << "\t" << isGoodAbove2SigmaPhi<< "\t" << isGoodAbove2SigmaPt << "\n";
+    hOutBad_2sigmas << run << "\t" << isGoodAbove2SigmaEta << "\t" << isGoodAbove2SigmaPhi<< "\t" << isGoodAbove2SigmaPt << "\n";
   }
   
   
@@ -475,7 +478,7 @@ void Data_MC_comparison_run_copy(string MC_prod, string period, string apass, in
   }
   
   else {
-    hOutGood_chi2 << run << "\t" << isGoodChi2Eta << "\t" << isGoodChi2Phi<< "\t" << isGoodChi2Pt << "\n";
+    hOutBad_chi2 << run << "\t" << isGoodChi2Eta << "\t" << isGoodChi2Phi<< "\t" << isGoodChi2Pt << "\n";
   }
   
   //-- draw Eta distrib Matched tracks MCH-MID + ratios 

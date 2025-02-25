@@ -31,7 +31,7 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   gStyle->SetOptStat(0);
   
   //----------Input and Output directory - same directory of the config file
-  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/pp136TeV2024_apass1"}; //same directory of the config file
+  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/PbPb2023_apass4"}; //same directory of the config file
   
   Long_t *dummy1 = 0, *dummy2 = 0, *dummy3 = 0, *dummy4 = 0;
 
@@ -71,7 +71,7 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   
   TCanvas *c_good = new TCanvas("c_good", "Grafico Good Runs", 800, 800);
   c_good->cd();
-  TPie *pie_good = new TPie("pie_good", Form("Good Runs %s", period.c_str()), 2, percentages_good, nullptr);
+  TPie *pie_good = new TPie("pie_good", Form("Good Runs_thresholds %s", period.c_str()), 2, percentages_good, nullptr);
   for (int i = 0; i < 2; i++) {
    pie_good->SetEntryLabel(i, "");
    pie_good->SetTextSize(0.03);
@@ -86,8 +86,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_good->Draw();
   
-  c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   
@@ -136,8 +136,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_good_2sigmas->Draw();
   
-  //c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   if(!fileGood_chi2){
@@ -185,8 +185,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_good_chi2->Draw();
   
-  //c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf[",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_good_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   
@@ -228,7 +228,7 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   
   TCanvas *c_bad = new TCanvas("c_bad", "Grafico Bad Runs", 800, 800);
   c_bad->cd();
-  TPie *pie_bad = new TPie("pie_bad", Form("Bad Runs %s", period.c_str()), 3, percentages_bad, nullptr);
+  TPie *pie_bad = new TPie("pie_bad", Form("Bad Runs_thresholds %s", period.c_str()), 3, percentages_bad, nullptr);
   for (int i = 0; i < 3; i++) {
    pie_bad->SetEntryLabel(i, "");
    pie_bad->SetTextSize(0.03);
@@ -243,8 +243,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_bad->Draw();
   
-  c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  //c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_bad->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   if(!fileBad_2sigmas){
@@ -295,8 +295,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_bad_2sigmas->Draw();
   
-  c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  //c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  //c_bad_2sigmas->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
   
   
   if(!fileBad_chi2){
@@ -347,8 +347,8 @@ void Creation_histogram_runquality(string MC_prod, string period, string apass){
   }
   leg_bad_chi2->Draw();
   
-  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
-  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
+  c_bad_chi2->Print(Form("%s/QualityHisto_MC_%s_data_%s_%s_v2.pdf]",output_dir_name[0],MC_prod.c_str(),period.c_str(),apass.c_str()));
  
   
   
