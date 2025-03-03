@@ -39,7 +39,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   gStyle->SetOptStat(0);
   
   //----------Input and Output directory - same directory of the config file
-  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/pp136TeV2024_apass1"}; //same directory of the config file
+  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/PbPb2023_apass4"}; //same directory of the config file
   
   Long_t *dummy1 = 0, *dummy2 = 0, *dummy3 = 0, *dummy4 = 0;
     
@@ -321,16 +321,16 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   
   
   //-- check quality of comparison MC/data performing a fit with a straight line (pol0) and check deviations from the fit in terms of number of sigmas or with chi square method
-  TF1 *fitFuncEta = new TF1("fitFuncEta","[0]",hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
-  fitFuncEta->SetParameters(0,1);
+  TF1 *fitFuncEta = new TF1("fitFuncEta","[0]",-4,-2.5);
+  fitFuncEta->FixParameter(0,1);
   hRatio_Eta_matchedMchMid_ptsel_MC_data->Fit(fitFuncEta,"R");
   
-  TF1 *fitFuncPhi = new TF1("fitFuncPhi","[0]",hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
-  fitFuncPhi->SetParameters(0,1);
+  TF1 *fitFuncPhi = new TF1("fitFuncPhi","[0]",-2.5,2.5);
+  fitFuncPhi->FixParameter(0,1);
   hRatio_Phi_matchedMchMid_ptsel_MC_data->Fit(fitFuncPhi,"R");
   
   TF1 *fitFuncPt = new TF1("fitFuncPt","[0]",0.7,2);//hRatio_Pt_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin(),hRatio_Pt_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax());
-  fitFuncPt->SetParameters(0,1);
+  fitFuncPt->FixParameter(0,1);
   hRatio_Pt_matchedMchMid_ptsel_MC_data->Fit(fitFuncPt,"R");
   
   int totalbinsEta = 0, totalbinsPhi = 0, totalbinsPt = 0;
@@ -419,6 +419,8 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   //cout << "PHI -- nbins over threshold: " << nBinsBadPhi << " |over2sigma: " << countAbove2SigmaPhi << " |chi2/ndof: " << chi2_ndofPhi << endl;
   //cout << "PT  -- nbins over threshold: " << nBinsBadPt << " |over2sigma: " << countAbove2SigmaPt << " |chi2/ndof: " << chi2_ndofPt << endl;
   
+  //cout << "ndf eta: " << ndofEta << " |ndof phi: " << ndofPhi << " |eta pt: " << ndofPt << endl;
+  
   //--Bad run if nBins with bin number over 2 sigma > 10% of the total number of bins
   double badRatioAbove2SigmaEta = 0., badRatioAbove2SigmaPhi = 0., badRatioAbove2SigmaPt = 0.; 
   badRatioAbove2SigmaEta = (countAbove2SigmaEta/(double)totalbinsEta)*100;
@@ -461,15 +463,15 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   }
   
   
-  //--Bad run if chi2_ndof > 2
+  //--Bad run if chi2_ndof > critic chi2 (75 250 230) 96.45, 287, 266.1 (double tail) --> chi2/ndf limit = 1,29; 1,15; 1.16
   bool isGoodChi2Eta = 0, isGoodChi2Phi = 0, isGoodChi2Pt = 0;
-  if(chi2_ndofEta<=2.) isGoodChi2Eta = true;
+  if(chi2_ndofEta<=1.29) isGoodChi2Eta = true;
    else isGoodChi2Eta = false;
    
-  if(chi2_ndofPhi<=2.) isGoodChi2Phi = true;
+  if(chi2_ndofPhi<=1.15) isGoodChi2Phi = true;
    else isGoodChi2Phi = false;
   
-  if(chi2_ndofPt<=2.) isGoodChi2Pt = true;
+  if(chi2_ndofPt<=1.16) isGoodChi2Pt = true;
    else isGoodChi2Pt = false;
   
   //-- write to QC.txt file
