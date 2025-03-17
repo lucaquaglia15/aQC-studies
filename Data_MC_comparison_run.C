@@ -1,4 +1,4 @@
-// ------------ Data and MC comparison (eta, phi and pT distributions) + ratios MC/data(A02D level)
+// ------------ Data and MC comparison (eta, phi and pT distributions) + ratios MC/data(A02D level) + quality flags
 #include <iostream>
 #include <TAttLine.h>
 #include <TAxis.h>
@@ -39,7 +39,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   gStyle->SetOptStat(0);
   
   //----------Input and Output directory - same directory of the config file
-  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/PbPb2023_apass4"}; //same directory of the config file
+  char output_dir_name[1][200] = {"/home/sarapc/Desktop/MID_QC/ComparisonDataMC_A02D/pp136TeV2023_apass4"}; //same directory of the config file
   
   Long_t *dummy1 = 0, *dummy2 = 0, *dummy3 = 0, *dummy4 = 0;
     
@@ -68,6 +68,13 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
 
   ofstream hOutBad;
   hOutBad.open(Form("%s/badRuns.txt",output_dir_name[0]), std::ios_base::app);
+  
+  //---------- Create .txt file for good/bad/la runs - setting thresholds + 2sigmas (considering errors)
+  ofstream hOutGood_thresholds2;
+  hOutGood_thresholds2.open(Form("%s/goodRuns_thresholds_sigmas.txt",output_dir_name[0]), std::ios_base::app);
+
+  ofstream hOutBad_thresholds2;
+  hOutBad_thresholds2.open(Form("%s/badRuns_thresholds_sigmas.txt",output_dir_name[0]), std::ios_base::app);
   
   //---------- Create .txt file for good/bad/la runs - 2sigmas
   ofstream hOutGood_2sigmas;
@@ -273,7 +280,7 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
     
     getBinContentPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinContent(iPt+1);
     getBinLimitPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinLowEdge(iPt+1);
-    //Add condition to skip the bump at Pt -3.7
+   
     if (getBinContentPt > 1e-6 && ((int)getBinLimitPt <= 2)) { //There is something in the bin
       nBinsGoodPt++;
 
@@ -318,6 +325,136 @@ void Data_MC_comparison_run(string MC_prod, string period, string apass, int run
   //cout << "nbins eta: " << nBinsEta << " |nbins phi:" << nBinsPhi << " |nbins pt:" << nBinsPt << endl;
   //cout << "ETA min: " << hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin() << " |max: " << hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax() << " |bin width: " << (hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax()-hRatio_Eta_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin())/nBinsEta << endl;
   //cout << "PHI min: " << hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin() << " |max: " << hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax() << " |bin width: " << (hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmax()-hRatio_Phi_matchedMchMid_ptsel_MC_data->GetXaxis()->GetXmin())/nBinsPhi << endl;
+  
+  //-- check quality of comparison MC/data setting thresholds and counting how many bins (<10%) are outside of 2sigmas (2*errors) - Eta
+  int nBinsBadEta_thresholds2 = 0, nBinsBadPhi_thresholds2 = 0, nBinsBadPt_thresholds2 = 0;
+  int nBinsGoodEta_thresholds2 = 0, nBinsGoodPhi_thresholds2 = 0, nBinsGoodPt_thresholds2 = 0;
+  
+  bool isGoodEta_thresholds2 = 0, isGoodPhi_thresholds2 = 0, isGoodPt_thresholds2 = 0;
+
+  //-- loop through the bins of the eta histo MC/data ratio and check quality of comparison (ratio within limits+2sigmas) 
+  for (int iEta = 0; iEta < nBinsEta; iEta++) {
+    double getBinContentEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetBinContent(iEta+1);
+    double getBinErrorEta = hRatio_Eta_matchedMchMid_ptsel_MC_data->GetBinError(iEta+1);
+
+    if (getBinContentEta > 1e-6) { // There is something in the bin
+        nBinsGoodEta_thresholds2++;
+
+        // Confidence range: value ± 2 * error
+        double lowerBound_Eta = getBinContentEta - 2 * getBinErrorEta;
+        double upperBound_Eta = getBinContentEta + 2 * getBinErrorEta;
+
+        if (upperBound_Eta >= lowLimitEtaPhi && lowerBound_Eta <= highLimitEtaPhi) {
+            // The point is within the confidence range
+            continue;
+        } else {
+            // The point is outside the confidence range
+            nBinsBadEta_thresholds2++;
+        }
+    }
+  }
+
+  
+  //-- ratio of "bad" bins over total number of bins
+  double badRatioEta_thresholds2 = 0.;
+  badRatioEta_thresholds2 = (nBinsBadEta_thresholds2/(double)nBinsGoodEta_thresholds2)*100;
+  if (badRatioEta_thresholds2 <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for eta
+    //cout << "Run is good for eta" << endl;
+    isGoodEta_thresholds2 = true;
+  }
+  
+  else {  //Number of bins with bad ratio > 10% of the total number of bins -> run is bad for eta
+    //cout << "Run is bad for eta" << endl;
+    isGoodEta_thresholds2 = false;
+  }
+  
+  
+  //-- check quality of comparison MC/data setting thresholds and counting how many bins (<10%) are outside of 2sigmas (2*errors) - Phi
+  //-- loop through the bins of the eta histo MC/data ratio and check quality of comparison (ratio within limits+2sigmas) 
+  for (int iPhi = 0; iPhi < nBinsPhi; iPhi++) {
+    double getBinContentPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetBinContent(iPhi+1);
+    double getBinErrorPhi = hRatio_Phi_matchedMchMid_ptsel_MC_data->GetBinError(iPhi+1);
+
+    if (getBinContentPhi > 1e-6) { // There is something in the bin
+        nBinsGoodPhi_thresholds2++;
+
+        // Confidence range: value ± 2 * error
+        double lowerBound_Phi = getBinContentPhi - 2 * getBinErrorPhi;
+        double upperBound_Phi = getBinContentPhi + 2 * getBinErrorPhi;
+
+        if (upperBound_Phi >= lowLimitEtaPhi && lowerBound_Phi <= highLimitEtaPhi) {
+            // The point is within the confidence range
+            continue;
+        } else {
+            // The point is outside the confidence range
+            nBinsBadPhi_thresholds2++;
+        }
+    }
+  }
+
+  
+  //-- ratio of "bad" bins over total number of bins
+  double badRatioPhi_thresholds2 = 0.;
+  badRatioPhi_thresholds2 = (nBinsBadPhi_thresholds2/(double)nBinsGoodPhi_thresholds2)*100;
+  if (badRatioPhi_thresholds2 <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for eta
+    //cout << "Run is good for eta" << endl;
+    isGoodPhi_thresholds2 = true;
+  }
+  
+  else {  //Number of bins with bad ratio > 10% of the total number of bins -> run is bad for eta
+    //cout << "Run is bad for eta" << endl;
+    isGoodPhi_thresholds2 = false;
+  }
+    
+    
+  //-- check quality of comparison MC/data setting thresholds and counting how many bins (<10%) are outside of 2sigmas (2*errors) - Pt  
+  //-- loop through the bins of the Pt histo MC/data ratio and check quality of comparison (ratio within limits+2sigmas)
+  for (int iPt = 0; iPt < nBinsPt; iPt++) {
+    double getBinContentPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinContent(iPt+1);
+    double getBinErrorPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinError(iPt+1);
+    double getBinLimitPt = hRatio_Pt_matchedMchMid_ptsel_MC_data->GetBinLowEdge(iPt+1);
+
+    if (getBinContentPt > 1e-6 && ((int)getBinLimitPt <= 2)) { //There is something in the bin in the [0,2] GeV/c range
+      nBinsGoodPt_thresholds2++;
+      
+      // Confidence range: value ± 2 * error
+      double lowerBound_Pt = getBinContentPt - 2 * getBinErrorPt;
+      double upperBound_Pt = getBinContentPt + 2 * getBinErrorPt;
+
+      if (upperBound_Pt >= lowLimitPt && lowerBound_Pt <= highLimitPt) {
+            // The point is within the confidence range
+            continue;
+        } else {
+            // The point is outside the confidence range
+            nBinsBadPt_thresholds2++;
+        }
+    }
+
+  }
+
+  
+  //-- ratio of "bad" bins over total number of bins
+  double badRatioPt_thresholds2 = 0.;
+  badRatioPt_thresholds2 = (nBinsBadPt_thresholds2/(double)nBinsGoodPt_thresholds2)*100;
+  if (badRatioPt_thresholds2 <= 10) { //Number of bins with bad ratio <= 10% of the total number of bins -> run is good for eta
+    //cout << "Run is good for eta" << endl;
+    isGoodPt_thresholds2 = true;
+  }
+  
+  else {  //Number of bins with bad ratio > 10% of the total number of bins -> run is bad for eta
+    //cout << "Run is bad for eta" << endl;
+    isGoodPt_thresholds2 = false;
+  }
+  
+  //-- write to .txt file
+  if (isGoodEta_thresholds2 && isGoodPhi_thresholds2) { //Good for eta and phi -> run is good
+    hOutGood_thresholds2 << run << "\t" << isGoodEta_thresholds2 << "\t" << isGoodPhi_thresholds2 << "\t" << isGoodPt_thresholds2 << "\n";
+  }
+
+  else {
+    hOutBad_thresholds2 << run << "\t" << isGoodEta_thresholds2 << "\t" << isGoodPhi_thresholds2 << "\t" << isGoodPt_thresholds2 << "\n";
+  }
+  
   
   
   //-- check quality of comparison MC/data performing a fit with a straight line (pol0) and check deviations from the fit in terms of number of sigmas or with chi square method
