@@ -109,10 +109,10 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
   hPhi_matchedMchMid_MC->SetName("hPhi_matchedMchMid_MC");
   hPhi_matchedMchMid_MC->Scale(1./hPhi_matchedMchMid_MC->Integral());
    
-  TLatex lat_cuts;
-  lat_cuts.SetTextSize(0.03); 
-  lat_cuts.SetTextFont(42);
-  lat_cuts.SetTextColor(kBlack);
+  TLatex lats;
+  lats.SetTextSize(0.03); 
+  lats.SetTextFont(42);
+  lats.SetTextColor(kBlack);
   
   //--- Matched tracks MCH-MID + pt>0.7 
   THashList *output_data_matched_ptsel = (THashList *)file_in_data->Get(objPath.c_str());
@@ -149,26 +149,69 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
   hPhi_matchedMchMid_ptsel_MC->SetName("hPhi_matchedMchMid_ptsel_MC");
   hPhi_matchedMchMid_ptsel_MC->Scale(1./hPhi_matchedMchMid_ptsel_MC->Integral());
   
-  TLatex lat_cuts_ptsel;
-  lat_cuts_ptsel.SetTextSize(0.03); 
-  lat_cuts_ptsel.SetTextFont(42);
-  lat_cuts_ptsel.SetTextColor(kBlack);
+  TLatex lats_ptsel;
+  lats_ptsel.SetTextSize(0.03); 
+  lats_ptsel.SetTextFont(42);
+  lats_ptsel.SetTextColor(kBlack);
+  
+  
+  //--- Rebinning of phi distributions considering the same number of bin of eta in the range in the plot 
+  int bin_eta_low = hEta_matchedMchMid_ptsel_data->FindBin(-4);
+  int bin_eta_high = hEta_matchedMchMid_ptsel_data->FindBin(-2.5);
+  int bins_eta = bin_eta_high - bin_eta_low + 1;
+  cout << "Numero bin in etahisto [-4, -2.5]: " << bins_eta << endl;
+
+  int bins_phi = bins_eta;  // 76
+  double phi_min = -TMath::Pi();
+  double phi_max = TMath::Pi();
+  
+  TH1F* hPhi_matchedMchMid_ptsel_data_rebinned = new TH1F("hPhi_matchedMchMid_ptsel_data_rebinned", "hPhi_matchedMchMid_ptsel_data_rebinned", bins_phi, phi_min, phi_max);
+  hPhi_matchedMchMid_ptsel_data_rebinned->Sumw2();
+  TH1F* hPhi_matchedMchMid_ptsel_MC_rebinned = new TH1F("hPhi_matchedMchMid_ptsel_MC_rebinned", "hPhi_matchedMchMid_ptsel_MC_rebinned", bins_phi, phi_min, phi_max);
+  hPhi_matchedMchMid_ptsel_MC_rebinned->Sumw2();
+  
+  for (int i = 1; i <= hPhi_matchedMchMid_ptsel_data->GetNbinsX(); i++) {
+     double x = hPhi_matchedMchMid_ptsel_data->GetBinCenter(i);
+     double content = hPhi_matchedMchMid_ptsel_data->GetBinContent(i);
+     double error   = hPhi_matchedMchMid_ptsel_data->GetBinError(i);
+  
+     int bin_new = hPhi_matchedMchMid_ptsel_data_rebinned->FindBin(x);
+     double current_content = hPhi_matchedMchMid_ptsel_data_rebinned->GetBinContent(bin_new);
+     double current_error   = hPhi_matchedMchMid_ptsel_data_rebinned->GetBinError(bin_new);
+  
+     hPhi_matchedMchMid_ptsel_data_rebinned->SetBinContent(bin_new, current_content + content);
+     hPhi_matchedMchMid_ptsel_data_rebinned->SetBinError(bin_new, sqrt(current_error*current_error + error*error));
+  }
+
+  for (int i = 1; i <= hPhi_matchedMchMid_ptsel_MC->GetNbinsX(); i++) {
+      double x = hPhi_matchedMchMid_ptsel_MC->GetBinCenter(i);
+      double content = hPhi_matchedMchMid_ptsel_MC->GetBinContent(i);
+      double error   = hPhi_matchedMchMid_ptsel_MC->GetBinError(i);
+   
+      int bin_new = hPhi_matchedMchMid_ptsel_MC_rebinned->FindBin(x);
+      double current_content = hPhi_matchedMchMid_ptsel_MC_rebinned->GetBinContent(bin_new);
+      double current_error   = hPhi_matchedMchMid_ptsel_MC_rebinned->GetBinError(bin_new);
+   
+      hPhi_matchedMchMid_ptsel_MC_rebinned->SetBinContent(bin_new, current_content + content);
+      hPhi_matchedMchMid_ptsel_MC_rebinned->SetBinError(bin_new, sqrt(current_error*current_error + error*error));
+   }
   
   //---- ratios MC/data
-  TH1F *hRatio_Pt_matchedMchMid_MC_data = (TH1F*) hPt_matchedMchMid_MC->Clone("hRatio_Pt_matchedMchMid_MC_data");
-  hRatio_Pt_matchedMchMid_MC_data->Divide(hPt_matchedMchMid_data);
-  TH1F *hRatio_Eta_matchedMchMid_MC_data = (TH1F*) hEta_matchedMchMid_MC->Clone("hRatio_Eta_matchedMchMid_MC_data");
-  hRatio_Eta_matchedMchMid_MC_data->Divide(hEta_matchedMchMid_data);
-  TH1F *hRatio_Phi_matchedMchMid_MC_data = (TH1F*) hPhi_matchedMchMid_MC->Clone("hRatio_Phi_matchedMchMid_MC_data");
-  hRatio_Phi_matchedMchMid_MC_data->Divide(hPhi_matchedMchMid_data);
+  //TH1F *hRatio_Pt_matchedMchMid_MC_data = (TH1F*) hPt_matchedMchMid_MC->Clone("hRatio_Pt_matchedMchMid_MC_data");
+  //hRatio_Pt_matchedMchMid_MC_data->Divide(hPt_matchedMchMid_data);
+  //TH1F *hRatio_Eta_matchedMchMid_MC_data = (TH1F*) hEta_matchedMchMid_MC->Clone("hRatio_Eta_matchedMchMid_MC_data");
+  //hRatio_Eta_matchedMchMid_MC_data->Divide(hEta_matchedMchMid_data);
+  //TH1F *hRatio_Phi_matchedMchMid_MC_data = (TH1F*) hPhi_matchedMchMid_MC->Clone("hRatio_Phi_matchedMchMid_MC_data");
+  //hRatio_Phi_matchedMchMid_MC_data->Divide(hPhi_matchedMchMid_data);
   
   TH1F *hRatio_Pt_matchedMchMid_ptsel_MC_data = (TH1F*) hPt_matchedMchMid_ptsel_MC->Clone("hRatio_Pt_matchedMchMid_ptsel_MC_data");
   hRatio_Pt_matchedMchMid_ptsel_MC_data->Divide(hPt_matchedMchMid_ptsel_data);
   TH1F *hRatio_Eta_matchedMchMid_ptsel_MC_data = (TH1F*) hEta_matchedMchMid_ptsel_MC->Clone("hRatio_Eta_matchedMchMid_ptsel_MC_data");
   hRatio_Eta_matchedMchMid_ptsel_MC_data->Divide(hEta_matchedMchMid_ptsel_data);
-  TH1F *hRatio_Phi_matchedMchMid_ptsel_MC_data = (TH1F*) hPhi_matchedMchMid_ptsel_MC->Clone("hRatio_Phi_matchedMchMid_ptsel_MC_data");
-  hRatio_Phi_matchedMchMid_ptsel_MC_data->Divide(hPhi_matchedMchMid_ptsel_data);
+  TH1F *hRatio_Phi_matchedMchMid_ptsel_MC_data = (TH1F*) hPhi_matchedMchMid_ptsel_MC_rebinned->Clone("hRatio_Phi_matchedMchMid_ptsel_MC_data");
+  hRatio_Phi_matchedMchMid_ptsel_MC_data->Divide(hPhi_matchedMchMid_ptsel_data_rebinned);
 
+  
   double lowLimitEtaPhi = 0.9, highLimitEtaPhi = 1.1; //+- 10% from unity in the ratio of eta and phi
   double lowLimitPt = 0.8, highLimitPt = 1.2; //+- 20% from unity in the ratio of p_{T} in the range 0-2 GeV/c as suggested by il Nutellaro
   int nBinsEta = 0, nBinsPhi = 0, nBinsPt = 0;
@@ -307,6 +350,7 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
   
   
   //-- draw Eta distrib Matched tracks MCH-MID + ratios 
+  /*
   TCanvas *can_etadistrib_comparison;
   TLegend *leg_etadistrib_comparison[2];
   TLine *line_etadistrib_comparison;
@@ -372,10 +416,10 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
     leg_etadistrib_comparison[i]->AddEntry(hEta_matchedMchMid_data,Form("%s %s (Data)",period.c_str(),apass.c_str() ),"lp");
     leg_etadistrib_comparison[i]->AddEntry(hEta_matchedMchMid_MC,Form("%s (MC)",MC_prod.c_str() ),"lp");
     leg_etadistrib_comparison[i]->Draw("SAME");
-    lat_cuts.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
-    lat_cuts.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
-    lat_cuts.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
-    lat_cuts.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
+    lats.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
+    lats.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
+    lats.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
+    lats.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
    }
    else{
     frame_etadistrib_comparison[i] = new TH1F("frame_ratio_etadistrib","",1,-4,-2.5); 
@@ -414,8 +458,10 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
     line_etadistrib_comparison->Draw("L");
    }
   }
+  */
   
   //-- draw Phi distrib Matched tracks MCH-MID + ratios
+  /*
   TCanvas *can_phidistrib_comparison;
   TLegend *leg_phidistrib_comparison[2];
   TLine *line_phidistrib_comparison;
@@ -479,10 +525,10 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
     leg_phidistrib_comparison[i]->AddEntry(hPhi_matchedMchMid_data,Form("%s %s (Data)",period.c_str(),apass.c_str() ),"lp");
     leg_phidistrib_comparison[i]->AddEntry(hPhi_matchedMchMid_MC,Form("%s (MC)",MC_prod.c_str() ),"lp");
     leg_phidistrib_comparison[i]->Draw("SAME");
-    lat_cuts.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
-    lat_cuts.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
-    lat_cuts.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
-    lat_cuts.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
+    lats.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
+    lats.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
+    lats.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
+    lats.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
    }
    else{
     frame_phidistrib_comparison[i] = new TH1F("frame_ratio_phidistrib","",1,-2.5,2.5); 
@@ -522,9 +568,10 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
   
    }
   }
-  
+  */
    
   //-- draw PT distrib Matched tracks MCH-MID + ratios
+  /*
   TCanvas *can_ptdistrib_comparison;
   TLegend *leg_ptdistrib_comparison[2];
   TLine *line_ptdistrib_comparison;
@@ -588,10 +635,10 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
     leg_ptdistrib_comparison[i]->AddEntry(hPt_matchedMchMid_data,Form("%s %s (Data)",period.c_str(),apass.c_str() ),"lp");
     leg_ptdistrib_comparison[i]->AddEntry(hPt_matchedMchMid_MC,Form("%s (MC)",MC_prod.c_str() ),"lp");
     leg_ptdistrib_comparison[i]->Draw("SAME");
-    lat_cuts.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
-    lat_cuts.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
-    lat_cuts.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
-    lat_cuts.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
+    lats.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
+    lats.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
+    lats.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
+    lats.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
    }
    else{
     frame_ptdistrib_comparison[i] = new TH1F("frame_ratio_ptdistrib","",1,0,5); 
@@ -630,7 +677,7 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
     line_ptdistrib_comparison->Draw("L");
    }
   }
-  
+  */
   
   
   //-- draw Eta distrib Matched tracks MCH-MID + pt >0.7 + ratios 
@@ -699,11 +746,11 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
     leg_etadistrib_comparison_ptsel[i]->AddEntry(hEta_matchedMchMid_ptsel_data,Form("%s %s (Data)",period.c_str(),apass.c_str() ),"lp");
     leg_etadistrib_comparison_ptsel[i]->AddEntry(hEta_matchedMchMid_ptsel_MC,Form("%s (MC)",MC_prod.c_str() ),"lp");
     leg_etadistrib_comparison_ptsel[i]->Draw("SAME");
-    lat_cuts_ptsel.DrawLatexNDC(0.18,0.75,"#bf{Selections}");
-    lat_cuts_ptsel.DrawLatexNDC(0.18,0.71,"|z| < 10 cm");
-    lat_cuts_ptsel.DrawLatexNDC(0.18,0.67,"MuonQualityCuts");
-    lat_cuts_ptsel.DrawLatexNDC(0.18,0.63,"Matched Tracks MCH-MID");
-    lat_cuts_ptsel.DrawLatexNDC(0.18,0.59,"#it{p}_{T} > 0.7 GeV/#it{c}");
+    lats_ptsel.DrawLatexNDC(0.18,0.75,"#bf{Selections}");
+    lats_ptsel.DrawLatexNDC(0.18,0.71,"|z| < 10 cm");
+    lats_ptsel.DrawLatexNDC(0.18,0.67,"MuonQualityCuts");
+    lats_ptsel.DrawLatexNDC(0.18,0.63,"Matched Tracks MCH-MID");
+    lats_ptsel.DrawLatexNDC(0.18,0.59,"#it{p}_{T} > 0.7 GeV/#it{c}");
    }
    else{
     frame_etadistrib_comparison_ptsel[i] = new TH1F("frame_ratio_etadistrib_ptsel","",1,-4,-2.5); 
@@ -776,42 +823,42 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
     frame_phidistrib_comparison_ptsel[i]->GetXaxis()->SetRangeUser(-2.5,2.5);
     frame_phidistrib_comparison_ptsel[i]->Draw("");
     
-    hPhi_matchedMchMid_ptsel_data->SetTitle(Form("#phi distribution - run %i",run));
-    hPhi_matchedMchMid_ptsel_data->GetXaxis()->SetTitle("#phi (rad.)");
-    hPhi_matchedMchMid_ptsel_data->GetYaxis()->SetTitle("Normalized counts");
-    hPhi_matchedMchMid_ptsel_data->GetXaxis()->SetTitleSize(0.05);
-    hPhi_matchedMchMid_ptsel_data->GetYaxis()->SetTitleSize(0.05);
-    hPhi_matchedMchMid_ptsel_data->GetXaxis()->SetLabelSize(0.05);
-    hPhi_matchedMchMid_ptsel_data->GetYaxis()->SetLabelSize(0.05);
-    hPhi_matchedMchMid_ptsel_data->GetXaxis()->SetTitleOffset(1.3);
-    hPhi_matchedMchMid_ptsel_data->GetYaxis()->SetTitleOffset(1.5);
-    hPhi_matchedMchMid_ptsel_data->GetXaxis()->SetRangeUser(-2.5,2.5);
-    hPhi_matchedMchMid_ptsel_data->SetLineColor(kRed+2);
-    hPhi_matchedMchMid_ptsel_data->SetMarkerColor(kRed+2);
-    hPhi_matchedMchMid_ptsel_data->SetMarkerStyle(8);
-    hPhi_matchedMchMid_ptsel_data->SetMarkerSize(1.5);
+    hPhi_matchedMchMid_ptsel_data_rebinned->SetTitle(Form("#phi distribution - run %i",run));
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetXaxis()->SetTitle("#phi (rad.)");
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetYaxis()->SetTitle("Normalized counts");
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetXaxis()->SetTitleSize(0.05);
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetYaxis()->SetTitleSize(0.05);
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetXaxis()->SetLabelSize(0.05);
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetYaxis()->SetLabelSize(0.05);
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetXaxis()->SetTitleOffset(1.3);
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetYaxis()->SetTitleOffset(1.5);
+    hPhi_matchedMchMid_ptsel_data_rebinned->GetXaxis()->SetRangeUser(-2.5,2.5);
+    hPhi_matchedMchMid_ptsel_data_rebinned->SetLineColor(kRed+2);
+    hPhi_matchedMchMid_ptsel_data_rebinned->SetMarkerColor(kRed+2);
+    hPhi_matchedMchMid_ptsel_data_rebinned->SetMarkerStyle(8);
+    hPhi_matchedMchMid_ptsel_data_rebinned->SetMarkerSize(1.5);
     //hPhi_matchedMchMid_ptsel_data->SetLineWidth(2);
-    hPhi_matchedMchMid_ptsel_data->Draw("EP");
-    hPhi_matchedMchMid_ptsel_MC->SetLineColor(kBlue+2);
-    hPhi_matchedMchMid_ptsel_MC->SetMarkerColor(kBlue+2);
-    hPhi_matchedMchMid_ptsel_MC->SetMarkerStyle(8);
-    hPhi_matchedMchMid_ptsel_MC->SetMarkerSize(1.5);
+    hPhi_matchedMchMid_ptsel_data_rebinned->Draw("EP");
+    hPhi_matchedMchMid_ptsel_MC_rebinned->SetLineColor(kBlue+2);
+    hPhi_matchedMchMid_ptsel_MC_rebinned->SetMarkerColor(kBlue+2);
+    hPhi_matchedMchMid_ptsel_MC_rebinned->SetMarkerStyle(8);
+    hPhi_matchedMchMid_ptsel_MC_rebinned->SetMarkerSize(1.5);
     //hPhi_matchedMchMid_ptsel_MC->SetLineWidth(2);
-    hPhi_matchedMchMid_ptsel_MC->Draw("EPSAME");
+    hPhi_matchedMchMid_ptsel_MC_rebinned->Draw("EPSAME");
     
     leg_phidistrib_comparison_ptsel[i] = new TLegend(0.18,0.78,0.4,0.88);//(0.2,0.75,0.8,0.88);
     //leg_phidistrib_comparison_ptsel[i]->SetHeader("Matched Tracks MCH-MID, #it{p}_{T} > 0.7 GeV/#it{c}","");  
     leg_phidistrib_comparison_ptsel[i]->SetTextSize(0.03);
     leg_phidistrib_comparison_ptsel[i]->SetTextFont(42);
     leg_phidistrib_comparison_ptsel[i]->SetBorderSize(0);
-    leg_phidistrib_comparison_ptsel[i]->AddEntry(hPhi_matchedMchMid_ptsel_data,Form("%s %s (Data)",period.c_str(),apass.c_str() ),"lp");
-    leg_phidistrib_comparison_ptsel[i]->AddEntry(hPhi_matchedMchMid_ptsel_MC,Form("%s (MC)",MC_prod.c_str() ),"lp");
+    leg_phidistrib_comparison_ptsel[i]->AddEntry(hPhi_matchedMchMid_ptsel_data_rebinned,Form("%s %s (Data)",period.c_str(),apass.c_str() ),"lp");
+    leg_phidistrib_comparison_ptsel[i]->AddEntry(hPhi_matchedMchMid_ptsel_MC_rebinned,Form("%s (MC)",MC_prod.c_str() ),"lp");
     leg_phidistrib_comparison_ptsel[i]->Draw("SAME");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.69,"#it{p}_{T} > 0.7 GeV/#it{c}");
+    lats_ptsel.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
+    lats_ptsel.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
+    lats_ptsel.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
+    lats_ptsel.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
+    lats_ptsel.DrawLatexNDC(0.56,0.69,"#it{p}_{T} > 0.7 GeV/#it{c}");
    }
    else{
     frame_phidistrib_comparison_ptsel[i] = new TH1F("frame_ratio_phidistrib_ptsel","",1,-2.5,2.5); 
@@ -916,11 +963,11 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
     leg_ptdistrib_comparison_ptsel[i]->AddEntry(hPt_matchedMchMid_ptsel_data,Form("%s %s (Data)",period.c_str(),apass.c_str() ),"lp");
     leg_ptdistrib_comparison_ptsel[i]->AddEntry(hPt_matchedMchMid_ptsel_MC,Form("%s (MC)",MC_prod.c_str() ),"lp");
     leg_ptdistrib_comparison_ptsel[i]->Draw("SAME");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
-    lat_cuts_ptsel.DrawLatexNDC(0.56,0.69,"#it{p}_{T} > 0.7 GeV/#it{c}");
+    lats_ptsel.DrawLatexNDC(0.56,0.85,"#bf{Selections}");
+    lats_ptsel.DrawLatexNDC(0.56,0.81,"|z| < 10 cm");
+    lats_ptsel.DrawLatexNDC(0.56,0.77,"MuonQualityCuts");
+    lats_ptsel.DrawLatexNDC(0.56,0.73,"Matched Tracks MCH-MID");
+    lats_ptsel.DrawLatexNDC(0.56,0.69,"#it{p}_{T} > 0.7 GeV/#it{c}");
    }
    else{
     frame_ptdistrib_comparison_ptsel[i] = new TH1F("frame_ratio_ptdistrib_ptsel","",1,0,5); 
@@ -961,10 +1008,11 @@ void Data_MC_comparison_run_cbt_muon(string MC_prod, string period, string apass
   }
   
   
-  can_etadistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf[",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
-  can_etadistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
-  can_phidistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
-  can_ptdistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
+  //can_etadistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf[",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
+  //can_etadistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
+  //can_phidistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
+  //can_ptdistrib_comparison->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
+  can_etadistrib_comparison_ptsel->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf[",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
   can_etadistrib_comparison_ptsel->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
   can_phidistrib_comparison_ptsel->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
   can_ptdistrib_comparison_ptsel->Print(Form("%s/%i/MCdata_comparison_MC_%s_data_%s_%s_run_%i_cbt_muon.pdf",output_dir_name[0],run,MC_prod.c_str(),period.c_str(),apass.c_str(),run));
