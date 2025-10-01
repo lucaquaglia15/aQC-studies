@@ -27,3 +27,8 @@
 
 #ignore powerpoint files
 *.odp
+*.odp#
+
+#ignore folders
+pp13TeV2023_apass4/
+pp900GeV_apass1/
